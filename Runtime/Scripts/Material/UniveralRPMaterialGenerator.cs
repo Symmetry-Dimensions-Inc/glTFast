@@ -34,6 +34,12 @@ namespace GLTFast.Materials {
             supportsCameraOpaqueTexture = renderPipelineAsset.supportsCameraOpaqueTexture;
         }
         
+#if USING_URP_12_OR_NEWER
+        protected override string GetMetallicShaderName(MetallicShaderFeatures metallicShaderFeatures) {
+            return "Shader Graphs/glTF-generic";
+        }
+#endif
+
         protected override ShaderMode? ApplyTransmissionShaderFeatures(Schema.Material gltfMaterial) {
             if (!supportsCameraOpaqueTexture) {
                 // Fall back to makeshift approximation via premultiply or blend 

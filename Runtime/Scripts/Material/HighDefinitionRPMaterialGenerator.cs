@@ -22,6 +22,12 @@ namespace GLTFast.Materials {
 
     public class HighDefinitionRPMaterialGenerator : ShaderGraphMaterialGenerator {
         
+#if USING_HDRP_10_OR_NEWER
+        protected override string GetMetallicShaderName(MetallicShaderFeatures metallicShaderFeatures) {
+            return "Shader Graphs/glTF-generic";
+        }
+#endif
+
     }
 }
 #endif // USING_URP

@@ -93,7 +93,7 @@ namespace GLTFast.Materials {
         protected static readonly int transmissionTextureRotationPropId = Shader.PropertyToID("_TransmittanceColorMapRotation");
         protected static readonly int transmissionTextureUVChannelPropId = Shader.PropertyToID("_TransmittanceColorMapUVChannel");
 
-#if USING_HDRP_10_OR_NEWER
+#if USING_HDRP_10_OR_NEWER || USING_URP_12_OR_NEWER
         // const string KW_DISABLE_DECALS = "_DISABLE_DECALS";
         const string KW_DISABLE_SSR_TRANSPARENT = "_DISABLE_SSR_TRANSPARENT";
         const string KW_DOUBLESIDED_ON = "_DOUBLESIDED_ON";
@@ -126,23 +126,7 @@ namespace GLTFast.Materials {
             bool doubleSided = (metallicShaderFeatures & MetallicShaderFeatures.DoubleSided) != 0;
             
             if(!metallicShaders.TryGetValue(metallicShaderFeatures,value: out var shader)) {
-                ShaderMode mode = (ShaderMode) (metallicShaderFeatures & MetallicShaderFeatures.ModeMask);
-#if USING_HDRP_10_OR_NEWER
-                mode = ShaderMode.Opaque;
-                doubleSided = false;
-#endif
-                // TODO: add ClearCoat support
-                bool coat = false; // (metallicShaderFeatures & MetallicShaderFeatures.ClearCoat) != 0;
-                // TODO: add sheen support
-                bool sheen = false; // (metallicShaderFeatures & MetallicShaderFeatures.Sheen) != 0;
-                
-                var shaderName = string.Format(
-                    "Shader Graphs/glTF-metallic-{0}{1}{2}{3}",
-                    mode,
-                    coat ? "-coat" : "",
-                    sheen ? "-sheen" : "",
-                    doubleSided ? "-double" : ""
-                );
+                var shaderName = GetMetallicShaderName(metallicShaderFeatures);
                 shader = FindShader(shaderName);
                 metallicShaders[metallicShaderFeatures] = shader;
             }
@@ -154,6 +138,17 @@ namespace GLTFast.Materials {
             mat.doubleSidedGI = doubleSided; 
 #endif
             return mat;
+        }
+
+        protected virtual string GetMetallicShaderName(MetallicShaderFeatures metallicShaderFeatures) {
+            var doubleSided = (metallicShaderFeatures & MetallicShaderFeatures.DoubleSided) != 0;
+            var mode = (ShaderMode)(metallicShaderFeatures & MetallicShaderFeatures.ModeMask);
+
+            return string.Format(
+                "Shader Graphs/glTF-metallic-{0}{1}"
+                ,mode
+                ,doubleSided ? "-double" : ""
+            );
         }
 
         Material GetUnlitMaterial(Schema.Material gltfMaterial)
@@ -386,7 +381,7 @@ namespace GLTFast.Materials {
 
             material.renderQueue = (int) renderQueue.Value;
 
-#if USING_HDRP_10_OR_NEWER
+#if USING_HDRP_10_OR_NEWER || USING_URP_12_OR_NEWER
             if (gltfMaterial.doubleSided) {
                 material.EnableKeyword(KW_DOUBLESIDED_ON);
                 material.SetFloat(k_DoubleSidedEnablePropId, 1);
@@ -395,7 +390,8 @@ namespace GLTFast.Materials {
                 material.SetFloat(k_DoubleSidedNormalModePropId, 0);
                 material.SetVector(k_DoubleSidedConstantsPropId, new Vector4(-1,-1,-1,0));
                 
-                material.SetFloat("_CullMode", (int)CullMode.Off);
+                material.SetFloat(cullPropId, (int)CullMode.Off);
+                material.SetFloat(cullModePropId, (int)CullMode.Off);
             }
             
             switch (shaderMode) {
@@ -412,11 +408,13 @@ namespace GLTFast.Materials {
                     material.SetShaderPassEnabled(k_ShaderPassTransparentDepthPostpass, false);
                     material.SetShaderPassEnabled(k_ShaderPassTransparentBackface, false);
                     material.SetShaderPassEnabled(k_ShaderPassRayTracingPrepass, false);
+                    
+                    material.SetShaderPassEnabled("DepthOnly", false);
+                    
                     material.SetFloat(k_ZTestGBufferPropId, (int)CompareFunction.Equal); //3
                     material.SetFloat(k_AlphaDstBlendPropId, (int)BlendMode.OneMinusSrcAlpha);//10
                     material.SetFloat(dstBlendPropId, (int)BlendMode.OneMinusSrcAlpha);//10
                     material.SetFloat(srcBlendPropId, (int) BlendMode.SrcAlpha);//5
-                    material.SetFloat(cullModePropId, (int)CullMode.Off);
                     material.SetFloat(k_CullModeForwardPropId, (int)CullMode.Off);
                     break;
                 case ShaderMode.Premultiply:
