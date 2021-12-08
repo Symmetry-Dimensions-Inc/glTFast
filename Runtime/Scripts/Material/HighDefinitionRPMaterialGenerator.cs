@@ -24,7 +24,7 @@ namespace GLTFast.Materials {
         
 #if USING_HDRP_10_OR_NEWER
         protected override string GetMetallicShaderName(MetallicShaderFeatures metallicShaderFeatures) {
-            return "Shader Graphs/glTF-HDRP";
+            return "Shader Graphs/glTF-generic";
         }
 #endif
 
