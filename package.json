@@ -1,5 +1,5 @@
 {
-  "name": "com.atteneder.gltfast",
+  "name": "com.symmetrydimensions.gltfast",
   "version": "4.8.3",
   "displayName": "glTFast",
   "description": "Use glTFast to import and export glTF 3D files efficiently at runtime or in the Editor",
@@ -15,7 +15,12 @@
     "universal",
     "basisu"
   ],
-  "author": {
+  "": {
+    "name": "Symmetry Dimensions",
+    "email": "n/a",
+    "url": "https://github.com/Symmetry-Dimensions-Inc/"
+  },
+  "originalAuthor": {
     "name": "Andreas Atteneder",
     "email": "andreas.atteneder@gmail.com",
     "url": "https://pixel.engineer"
